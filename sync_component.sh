@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source and destination directories
-SOURCE_DIR="/workspaces/homeassistant-dev-core/config/custom_components/judo_connectivity/"
+SOURCE_DIR="/workspaces/homeassistant-dev-core/homeassistant/components/judo_connectivity/"
 DEST_DIR="/workspaces/repos/judo-connectivity/custom_components/judo_connectivity/"
 
 # Ensure destination directory exists
