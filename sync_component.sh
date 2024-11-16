@@ -4,6 +4,8 @@
 SOURCE_DIR="/workspaces/homeassistant-dev-core/homeassistant/components/judo_connectivity/"
 DEST_DIR="/workspaces/repos/judo-connectivity/custom_components/judo_connectivity/"
 
+git pull origin main
+
 # Ensure destination directory exists
 mkdir -p "$DEST_DIR"
 
