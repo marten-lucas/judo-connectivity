@@ -4,10 +4,12 @@
   "codeowners": ["@marten-lucas"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://www.home-assistant.io/integrations/judo_connectivity",
+  "documentation": "https://github.com/marten-lucas/judo-connectivity",
   "homekit": {},
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/marten-lucas/judo-connectivity/issues",
   "requirements": [],
   "ssdp": [],
+  "version": "0.0.1",
   "zeroconf": []
 }
