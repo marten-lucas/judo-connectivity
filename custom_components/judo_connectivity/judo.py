@@ -89,3 +89,59 @@ class JudoAPI:
                 )
                 return value / 1000  # Convert to m³
         return None
+
+    async def get_salt(self) -> tuple[float, int] | None:
+        """Retrieve the salt mass and range from the device.
+
+        Returns:
+            A tuple containing:
+                - salt_mass (float): The salt mass in kilograms (kg)
+                - salt_range (int): The salt range in days
+            None if retrieval fails
+
+        """
+        response = await self.call("/5600")
+        if response:
+            raw_data = response.get("data", "")
+            if len(raw_data) >= 8:
+                try:
+                    # Parse data
+                    salt_mass = int(raw_data[:4], 16) / 1000  # Convert to kg
+                    salt_range = int(raw_data[4:], 16)  # Days remaining
+                except ValueError as e:
+                    _LOGGER.error("Error parsing salt data: %s", e)
+                    return None
+                else:
+                    return salt_mass, salt_range
+        return None
+
+    async def set_salt(self, amount: float) -> bool:
+        """Send a command to refill the salt.
+
+        Args:
+            amount (float): The amount of salt to add in kilograms, up to a maximum of 25.0 kg.
+
+        Returns:
+            bool: True if the request was successful, False otherwise.
+
+        """
+        # Validate the input range
+        if amount < 0 or amount > 25.0:
+            _LOGGER.error(
+                "Invalid salt amount: %.2f kg. Must be between 0 and 25.0 kg", amount
+            )
+            return False
+
+        # Convert the amount to an integer representation in grams, then to hexadecimal
+        hex_amount = f"{int(amount * 1000):04X}"
+
+        # Construct the endpoint
+        endpoint = f"/5600{hex_amount}"
+
+        # Make the GET request
+        response = await self.call(endpoint)
+        if response and response.get("status") == "success":
+            return True
+
+        _LOGGER.error("Failed to set salt amount. Response: %s", response)
+        return False

@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfVolume
+from homeassistant.const import UnitOfMass, UnitOfTime, UnitOfVolume
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -45,7 +45,24 @@ async def async_setup_entry(
             SensorDeviceClass.WATER,
             SensorStateClass.TOTAL_INCREASING,
         ),
-        # Add additional entities here if needed
+        JudoSensor(
+            coordinator,
+            config_entry,
+            "salt_mass",
+            "Salt Mass",
+            UnitOfMass.KILOGRAMS,  # Unit of measurement for salt mass
+            SensorDeviceClass.WEIGHT,
+            SensorStateClass.MEASUREMENT,
+        ),
+        JudoSensor(
+            coordinator,
+            config_entry,
+            "salt_range",
+            "Salt Range",
+            UnitOfTime.DAYS,  # Unit of measurement for salt range
+            SensorDeviceClass.DURATION,
+            SensorStateClass.MEASUREMENT,
+        ),
     ]
 
     async_add_entities(entities)

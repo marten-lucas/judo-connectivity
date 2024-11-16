@@ -33,9 +33,17 @@ class JudoCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch data from Judo API."""
         try:
-            return {
-                "soft_water_volume": await self.api.get_soft_water_volume(),
-                # Add additional data points here if needed
-            }
+            # Fetch soft water volume
+            soft_water_volume = await self.api.get_soft_water_volume()
+
+            # Fetch salt mass and range
+            salt_mass, salt_range = await self.api.get_salt()
         except Exception as err:
+            _LOGGER.error("Error fetching data from Judo API: %s", err)
             raise UpdateFailed(f"Error fetching data from Judo API: {err}") from err
+        else:
+            return {
+                "soft_water_volume": soft_water_volume,
+                "salt_mass": salt_mass,
+                "salt_range": salt_range,
+            }
