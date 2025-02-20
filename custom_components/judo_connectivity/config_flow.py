@@ -1,102 +1,84 @@
-"""Setup for IP, username, and password for the Judo Connectivity Module."""
-
-import logging
-from typing import Any
-
+"""Config flow for Judo Connectivity Module integration."""
 import aiohttp
 import voluptuous as vol
-
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_USERNAME, CONF_PASSWORD
 from homeassistant.core import callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN
-from .judo import JudoAPI
-
-_LOGGER = logging.getLogger(__name__)
-
-DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_IP_ADDRESS): str,
-        vol.Required(CONF_USERNAME): str,
-        vol.Required(CONF_PASSWORD): str,
-    }
-)
-
+from .const import DOMAIN, CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
 
 class JudoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for setting up the Judo Connectivity Module."""
+    """Handle a config flow for Judo Connectivity Module."""
 
     VERSION = 1
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        """Return the options flow for this handler."""
-        return JudoOptionsFlowHandler(config_entry)
-
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle a flow initiated by the user."""
+    async def async_step_user(self, user_input=None):
+        """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            ip = user_input[CONF_IP_ADDRESS]
-            user = user_input[CONF_USERNAME]
-            password = user_input[CONF_PASSWORD]
             try:
-                judo_connection = JudoAPI(ip, user, password)
-                info = await judo_connection.test()
-
-                if info:
-                    return self.async_create_entry(
-                        title="Judo Connectivity Module", data=user_input
-                    )
-                errors["base"] = "device_not_found"
-            except aiohttp.ClientError:
-                _LOGGER.error("Failed to connect to device at %s", ip)
-                errors["base"] = "connection_error"
-            except Exception as ex:  # Catching general exceptions for unknown errors
-                _LOGGER.error("Unexpected error: %s", ex)
-                errors["base"] = "unknown_error"
+                session = async_get_clientsession(self.hass)
+                url = f"http://{user_input[CONF_HOST]}:{user_input[CONF_PORT]}/api/rest/FF00"
+                auth = aiohttp.BasicAuth(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                async with session.get(url, auth=auth, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    resp.raise_for_status()
+                    data = await resp.json()
+                    if "data" not in data:
+                        raise ValueError("Invalid response from device")
+            except (aiohttp.ClientError, ValueError) as err:
+                errors["base"] = "cannot_connect" if isinstance(err, aiohttp.ClientError) else "invalid_auth"
+            else:
+                unique_id = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                await self.async_set_unique_id(unique_id)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(
+                    title=f"Judo Device at {user_input[CONF_HOST]}",
+                    data=user_input,
+                )
 
         return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_HOST): str,
+                    vol.Required(CONF_PORT, default=8080): int,
+                    vol.Required(CONF_USERNAME): str,
+                    vol.Required(CONF_PASSWORD): str,
+                }
+            ),
+            description_placeholders={
+                "url": "e.g., 192.168.44.5",
+                "port": "e.g., 8080",
+                "username": "Your Judo username",
+                "password": "Your Judo password",
+            },
+            errors=errors,
         )
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return JudoOptionsFlow(config_entry)
 
-class JudoOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options flow for the Judo Connectivity Module."""
+class JudoOptionsFlow(config_entries.OptionsFlow):
+    """Handle options flow."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow handler."""
+    def __init__(self, config_entry):
         self.config_entry = config_entry
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle options for Judo connectivity."""
+    async def async_step_init(self, user_input=None):
+        """Manage the options."""
         if user_input is not None:
-            # Save the options if submitted by the user
             return self.async_create_entry(title="", data=user_input)
-
-        # Populate the schema with existing config values as default values
-        current_data = self.config_entry.data
-        options_schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_IP_ADDRESS, default=current_data.get(CONF_IP_ADDRESS)
-                ): str,
-                vol.Required(
-                    CONF_USERNAME, default=current_data.get(CONF_USERNAME)
-                ): str,
-                vol.Required(
-                    CONF_PASSWORD, default=current_data.get(CONF_PASSWORD)
-                ): str,
-            }
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_UPDATE_INTERVAL,
+                        default=self.config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=30)),
+                }
+            ),
         )
-
-        return self.async_show_form(step_id="init", data_schema=options_schema)
