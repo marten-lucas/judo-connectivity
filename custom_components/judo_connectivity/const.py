@@ -1,4 +1,4 @@
-"""Constants for the Judo Connectiviy Module integration."""
-
+"""Constants for the Judo Connectivity Module integration."""
 DOMAIN = "judo_connectivity"
-API_COOLDOWN_IN_SECONDS = 10
+CONF_UPDATE_INTERVAL = "update_interval"
+DEFAULT_UPDATE_INTERVAL = 300  # 5 minutes
