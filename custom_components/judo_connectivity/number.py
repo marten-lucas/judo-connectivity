@@ -1,62 +1,50 @@
-"""Number entities for Judo Connectivity."""
-
-import logging
-
-from homeassistant.components.number import NumberEntity, NumberEntityDescription
+"""Number platform for Judo Connectivity Module."""
+from homeassistant.components.number import NumberEntity, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfMass
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import JudoCoordinator
-
-_LOGGER = logging.getLogger(__name__)
-
+from .coordinator import JudoDataUpdateCoordinator
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Set up the number entity for Judo Connectivity."""
-    coordinator: JudoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-
-    async_add_entities(
-        [
-            JudoNumber(
-                coordinator,
-                config_entry,
-                NumberEntityDescription(
-                    key="salt_refill",
-                    native_min_value=0.0,
-                    native_max_value=25.0,
-                    native_step=0.1,
-                    native_unit_of_measurement="kg",
-                ),
-            )
-        ]
+    """Set up the Judo number entity."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_info = DeviceInfo(
+        identifiers={(DOMAIN, f"{entry.data['host']}:{entry.data['port']}")},
+        name=f"Judo Device at {entry.data['host']}",
+        manufacturer="Judo",
     )
+    async_add_entities([JudoSaltRefillMass(coordinator, device_info)])
 
+class JudoSaltRefillMass(NumberEntity):
+    """Number entity for salt refill mass."""
 
-class JudoNumber(NumberEntity):
-    """Representation of a Judo Connectivity number entity."""
+    _attr_name = "Regeneration Salt Refill Mass"
+    _attr_has_entity_name = True
+    _attr_device_class = NumberDeviceClass.MASS
+    _attr_native_unit_of_measurement = UnitOfMass.KILOGRAMS
+    _attr_native_min_value = 0.5
+    _attr_native_max_value = 25.0
+    _attr_native_step = 0.5
+    _attr_translation_key = "salt_refill_mass"
 
-    def __init__(
-        self,
-        coordinator: JudoCoordinator,
-        config_entry: ConfigEntry,
-        description: NumberEntityDescription,
-    ) -> None:
+    def __init__(self, coordinator: JudoDataUpdateCoordinator, device_info: DeviceInfo):
         """Initialize the number entity."""
-        self.entity_description = description
-        self._attr_name = "Salt Refill"
-        self._attr_unique_id = f"{config_entry.entry_id}_salt_refill"
         self._coordinator = coordinator
-        self._attr_native_value = 0.0  # Default value
+        self._attr_device_info = device_info
+        self._attr_unique_id = f"{coordinator._base_url}_salt_refill_mass"
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self._coordinator.last_update_success
 
     async def async_set_native_value(self, value: float) -> None:
-        """Set the number value."""
+        """Set the value (no API call here, just store locally)."""
         self._attr_native_value = value
-        _LOGGER.info("Setting salt refill value to %.1f kg", value)
-        # Integrate API call to set the value in the device, if necessary.
         self.async_write_ha_state()
