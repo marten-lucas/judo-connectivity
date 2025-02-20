@@ -1,49 +1,56 @@
-"""Module for connecting to Judo Connectivity Module via REST API.
-
-This module provides a client for interacting with the Judo water treatment system's
-REST API, allowing for monitoring and control of the device.
-"""
-
-from datetime import timedelta
+"""DataUpdateCoordinator for Judo Connectivity Module."""
 import logging
+from datetime import timedelta
 
+import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .judo import JudoAPI
-
 _LOGGER = logging.getLogger(__name__)
 
-UPDATE_INTERVAL = timedelta(minutes=1)
+class JudoDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching Judo data."""
 
-
-class JudoCoordinator(DataUpdateCoordinator):
-    """Coordinator to manage data fetching from Judo API."""
-
-    def __init__(self, hass: HomeAssistant, api: JudoAPI) -> None:
-        """Initialize the coordinator."""
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        update_interval: int,
+    ):
+        """Initialize."""
+        self._session = session
+        self._host = host
+        self._port = port
+        self._auth = aiohttp.BasicAuth(username, password)
+        self._base_url = f"http://{host}:{port}/api/rest/"
         super().__init__(
             hass,
             _LOGGER,
-            name="Judo Connectivity Module Data Coordinator",
-            update_interval=UPDATE_INTERVAL,
+            name="Judo Connectivity",
+            update_interval=timedelta(seconds=update_interval),
         )
-        self.api = api
+        self._was_unavailable = False
 
-    async def _async_update_data(self) -> dict:
-        """Fetch data from Judo API."""
+    async def _async_update_data(self):
+        """Fetch data from Judo device."""
+        commands = ["FF00", "0600", "0100", "2500", "2800", "5600", "5100"]
+        data = {}
         try:
-            # Fetch soft water volume
-            soft_water_volume = await self.api.get_soft_water_volume()
-
-            # Fetch salt mass and range
-            salt_mass, salt_range = await self.api.get_salt()
-        except Exception as err:
-            _LOGGER.error("Error fetching data from Judo API: %s", err)
-            raise UpdateFailed(f"Error fetching data from Judo API: {err}") from err
-        else:
-            return {
-                "soft_water_volume": soft_water_volume,
-                "salt_mass": salt_mass,
-                "salt_range": salt_range,
-            }
+            for cmd in commands:
+                async with self._session.get(f"{self._base_url}{cmd}", auth=self._auth) as resp:
+                    resp.raise_for_status()
+                    json_data = await resp.json()
+                    data[cmd] = json_data.get("data", "")
+            if self._was_unavailable:
+                _LOGGER.info("Judo device is back online")
+                self._was_unavailable = False
+            return data
+        except aiohttp.ClientError as err:
+            if not self._was_unavailable:
+                _LOGGER.warning("Judo device unavailable: %s", err)
+                self._was_unavailable = True
+            raise UpdateFailed(f"Error communicating with Judo device: {err}") from err
