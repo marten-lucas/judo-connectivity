@@ -35,7 +35,7 @@ class JudoDataUpdateCoordinator(DataUpdateCoordinator):
             data["device_no"] = await self.client.async_fetch_data("0600")
             data["sw_version"] = await self.client.async_fetch_data("0100")
             data["operating_hours"] = await self.client.async_fetch_data("2500")
-            data["total_water_volume"] = await self.client.async_fetch_data("2800")
+            data["total_water_volume"] = await self.client.async_fetch_data("2900")
             salt_data = await self.client.async_fetch_data("5600")
             data["salt_range"] = salt_data
             data["salt_stock"] = salt_data
