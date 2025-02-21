@@ -160,7 +160,7 @@ class JudoSaltStockSensor(JudoSensor):
     """Representation of the Regeneration Salt Stock sensor."""
 
     _attr_name = "Regeneration Salt Stock"
-    _attr_device_class = SensorDeviceClass.MASS
+    _attr_device_class = SensorDeviceClass.WEIGHT
     _attr_unit_of_measurement = UnitOfMass.KILOGRAMS
     _attr_icon = "mdi:weight"
 
