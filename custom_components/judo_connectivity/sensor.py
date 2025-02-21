@@ -1,12 +1,12 @@
 """Sensor entities for Judo Connectivity Module."""
 
 from homeassistant.components.sensor import (
-    SensorDeviceClass,
     SensorEntity,
+    SensorDeviceClass,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfMass, UnitOfTime, UnitOfVolume
+from homeassistant.const import UnitOfMass, UnitOfVolume, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -161,15 +161,15 @@ class JudoSaltStockSensor(JudoSensor):
 
     _attr_name = "Regeneration Salt Stock"
     _attr_device_class = SensorDeviceClass.WEIGHT
-    _attr_unit_of_measurement = UnitOfMass.KILOGRAMS
+    _attr_unit_of_measurement = UnitOfMass.GRAMS  # Changed to grams
     _attr_icon = "mdi:weight"
 
     @property
-    def state(self) -> float:
+    def state(self) -> int:  # Changed to int for grams
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["salt_stock"]
         bytes_value = bytes.fromhex(hex_value)
-        return int.from_bytes(bytes_value[:2], "little") / 1000
+        return int.from_bytes(bytes_value[:2], "little")
 
 
 class JudoWaterHardnessSensor(JudoSensor):
@@ -183,4 +183,5 @@ class JudoWaterHardnessSensor(JudoSensor):
     def state(self) -> int:
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["water_hardness"]
-        return int(hex_value, 16)
+        bytes_value = bytes.fromhex(hex_value)
+        return bytes_value[0]  # LSB for °dH
