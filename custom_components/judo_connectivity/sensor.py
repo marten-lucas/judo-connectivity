@@ -138,9 +138,9 @@ class JudoTotalWaterVolumeSensor(JudoSensor):
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["total_water_volume"]
         bytes_value = bytes.fromhex(hex_value)
-        # LSB-first: reverse bytes and convert to int
-        liters = int.from_bytes(bytes_value[::-1], "little")
-        return liters / 1000  # Convert liters to cubic meters
+        liters = int.from_bytes(bytes_value[::-1], "little")  # LSB-first
+        return liters / 1000  # Liters to m³
+
 
 class JudoSaltRangeSensor(JudoSensor):
     """Representation of the Regeneration Salt Range sensor."""
@@ -163,11 +163,11 @@ class JudoSaltStockSensor(JudoSensor):
 
     _attr_name = "Regeneration Salt Stock"
     _attr_device_class = SensorDeviceClass.WEIGHT
-    _attr_unit_of_measurement = UnitOfMass.GRAMS  # Changed to grams
+    _attr_unit_of_measurement = UnitOfMass.GRAMS
     _attr_icon = "mdi:weight"
 
     @property
-    def state(self) -> int:  # Changed to int for grams
+    def state(self) -> int:
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["salt_stock"]
         bytes_value = bytes.fromhex(hex_value)
@@ -186,4 +186,4 @@ class JudoWaterHardnessSensor(JudoSensor):
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["water_hardness"]
         bytes_value = bytes.fromhex(hex_value)
-        return bytes_value[0]  # LSB for °dH
+        return bytes_value[0]  # LSB
