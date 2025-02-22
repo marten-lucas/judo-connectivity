@@ -108,7 +108,7 @@ class JudoOperatingHoursSensor(JudoSensor):
 
     _attr_name = "Operating Hours"
     _attr_device_class = SensorDeviceClass.DURATION
-    _attr_unit_of_measurement = UnitOfTime.HOURS
+    _attr_native_unit_of_measurement = UnitOfTime.HOURS
     _attr_icon = "mdi:clock"
 
     @property
@@ -130,7 +130,7 @@ class JudoTotalWaterVolumeSensor(JudoSensor):
     _attr_name = "Total Water Volume"
     _attr_device_class = SensorDeviceClass.WATER
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_unit_of_measurement = UnitOfVolume.CUBIC_METERS
+    _attr_native_unit_of_measurement = UnitOfVolume.CUBIC_METERS
     _attr_icon = "mdi:water"
 
     @property
@@ -147,7 +147,7 @@ class JudoSaltRangeSensor(JudoSensor):
 
     _attr_name = "Regeneration Salt Range"
     _attr_device_class = SensorDeviceClass.DURATION
-    _attr_unit_of_measurement = UnitOfTime.DAYS
+    _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_icon = "mdi:clock-outline"
 
     @property
@@ -163,7 +163,7 @@ class JudoSaltStockSensor(JudoSensor):
 
     _attr_name = "Regeneration Salt Stock"
     _attr_device_class = SensorDeviceClass.WEIGHT
-    _attr_unit_of_measurement = UnitOfMass.GRAMS
+    _attr_native_unit_of_measurement = UnitOfMass.GRAMS
     _attr_icon = "mdi:weight"
 
     @property
@@ -178,7 +178,7 @@ class JudoWaterHardnessSensor(JudoSensor):
     """Representation of the Water Hardness sensor."""
 
     _attr_name = "Water Hardness"
-    _attr_unit_of_measurement = "°dH"
+    _attr_native_unit_of_measurement = "°dH"
     _attr_icon = "mdi:water-opacity"
 
     @property

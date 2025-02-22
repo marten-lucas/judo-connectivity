@@ -26,7 +26,7 @@ class JudoSaltRefillMassNumber(NumberEntity):
 
     _attr_name = "Regeneration Salt Refill Mass"
     _attr_device_class = "mass"
-    _attr_unit_of_measurement = UnitOfMass.KILOGRAMS
+    _attr_native_unit_of_measurement = UnitOfMass.KILOGRAMS
     _attr_icon = "mdi:scale"
     _attr_native_min_value = 0.5
     _attr_native_max_value = 25.0
