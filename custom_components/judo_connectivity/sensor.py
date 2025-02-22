@@ -137,8 +137,10 @@ class JudoTotalWaterVolumeSensor(JudoSensor):
     def state(self) -> float:
         """Return the state of the sensor."""
         hex_value = self.coordinator.data["total_water_volume"]
-        bytes_value = bytes.fromhex(hex_value)
-        liters = int.from_bytes(bytes_value[::-1], "little")  # LSB-first
+        reordered_hex = (
+            hex_value[6:8] + hex_value[4:6] + hex_value[2:4] + hex_value[0:2]
+        )
+        liters = liters = int(reordered_hex, 16)
         return liters / 1000  # Liters to m³
 
 
