@@ -124,22 +124,22 @@ class JudoOperatingHoursSensor(JudoSensor):
         return round(days * 24 + hours + minutes / 60, 1)
 
 
-class JudoTotalWaterVolumeSensor(JudoSensor): """Representation of the Total Water Volume sensor."""
+class JudoTotalWaterVolumeSensor(JudoSensor):
+    """Representation of the Total Water Volume sensor."""
 
-_attr_name = "Total Water Volume"
-_attr_device_class = SensorDeviceClass.WATER
-_attr_state_class = SensorStateClass.TOTAL_INCREASING
-_attr_native_unit_of_measurement = UnitOfVolume.CUBIC_METERS
-_attr_icon = "mdi:water"
+    _attr_name = "Total Water Volume"
+    _attr_device_class = SensorDeviceClass.WATER
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfVolume.CUBIC_METERS
+    _attr_icon = "mdi:water"
 
-@property
-def state(self) -> float:
-    """Return the state of the sensor."""
-    hex_value = self.coordinator.data["total_water_volume"]
-    reordered_hex = hex_value[6:8] + hex_value[4:6] + hex_value[2:4] + hex_value[0:2]
-    liters = int(reordered_hex, 16)
-    return liters / 1000  # Liters to m³
-
+    @property
+    def state(self) -> float:
+        """Return the state of the sensor."""
+        hex_value = self.coordinator.data["total_water_volume"]
+        bytes_value = bytes.fromhex(hex_value)
+        liters = int.from_bytes(bytes_value[::-1], "little")  # LSB-first
+        return liters / 1000  # Liters to m³
 
 
 class JudoSaltRangeSensor(JudoSensor):
