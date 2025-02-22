@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Judo Connectivity Module einrichten",
+        "description": "Geben Sie die Details für Ihr Judo-Gerät ein.",
+        "data": {
+          "url": "Judo URL",
+          "port": "Judo Port",
+          "username": "Judo Benutzer",
+          "password": "Judo Passwort",
+          "update_interval": "Aktualisierungszeit (Sekunden)"
+        },
+        "data_description": {
+          "url": "Die Basis-URL Ihres Judo-Geräts (z.B. http://192.168.1.x)",
+          "port": "Die Portnummer für die API (Standard ist 8080)",
+          "username": "Der Benutzername für die Authentifizierung",
+          "password": "Das Passwort für die Authentifizierung",
+          "update_interval": "Wie oft das Gerät abgefragt werden soll (in Sekunden)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Judo-Gerät fehlgeschlagen."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "device_type": { "name": "Gerätetyp" },
+      "device_number": { "name": "Gerätenummer" },
+      "software_version": { "name": "Software-Version" },
+      "operating_hours": { "name": "Betriebsstundenzähler" },
+      "total_water_volume": { "name": "Gesamtwassermenge" },
+      "regeneration_salt_range": { "name": "Salzreichweite" },
+      "regeneration_salt_stock": { "name": "Salzvorrat" },
+      "water_hardness": { "name": "Wasserhärte" }
+    },
+    "button": {
+      "regeneration_salt_trigger_refill": { "name": "Salznachfüllung auslösen" }
+    },
+    "number": {
+      "regeneration_salt_refill_mass": { "name": "Salznachfüllmenge" }
+    }
+  }
+}
