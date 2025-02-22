@@ -140,7 +140,7 @@ class JudoTotalWaterVolumeSensor(JudoSensor):
         reordered_hex = (
             hex_value[6:8] + hex_value[4:6] + hex_value[2:4] + hex_value[0:2]
         )
-        liters = liters = int(reordered_hex, 16)
+        liters = int(reordered_hex, 16)
         return liters / 1000  # Liters to m³
 
 
